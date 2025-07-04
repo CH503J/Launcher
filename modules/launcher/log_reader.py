@@ -27,4 +27,11 @@ class LogReaderThread(QThread):
             line = self.process.stdout.readline()  # 按行读取子进程的输出
             if not line:  # 如果没有读取到内容，表示输出结束
                 break
-            self.log_received.emit(line.rstrip())  # 发射信号，传递处理后的日志行
+            line = line.rstrip ()
+
+            if self.is_error_line(line):
+                self.log_received.emit(line)
+
+    def is_error_line(self, line:str) -> bool:
+        keywords = ["error", "exception", "failed", "fatal", "critical"]
+        return any(kw in line.lower() for kw in keywords)
