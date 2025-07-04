@@ -20,8 +20,9 @@ from modules.launcher.log_reader import LogReaderThread
 
 
 class LauncherTab(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.main_window = parent
         self.log_all_enabled = False  # 标记是否输出所有日志
         self.init_ui()
 
@@ -68,9 +69,14 @@ class LauncherTab(QWidget):
         if not self.process:
             self.status_label.setText("服务状态：启动失败")
             self.append_log("服务启动失败")
+            if self.main_window:
+                self.main_window.show_toast("服务启动失败")
             return
 
         self.status_label.setText("服务状态：已启动")
+        self.append_log("服务启动中。。。")
+        if self.main_window:
+            self.main_window.show_toast("服务已成功启动")
 
         # 创建并启动日志线程
         self.log_thread = LogReaderThread(self.process, self.log_all_enabled)
@@ -81,6 +87,8 @@ class LauncherTab(QWidget):
         stop_server()
         self.status_label.setText("服务状态：已停止")
         self.append_log("服务已停止。")
+        if self.main_window:
+            self.main_window.show_toast("服务已停止")
 
         # 重新启用勾选框
         self.log_all_checkbox.setEnabled(True)
