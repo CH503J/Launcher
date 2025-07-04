@@ -6,10 +6,17 @@
 
 import os
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QGroupBox, QFormLayout,
-    QLineEdit, QPushButton, QHBoxLayout, QFileDialog
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QGroupBox,
+    QFormLayout,
+    QLineEdit,
+    QPushButton,
+    QHBoxLayout,
+    QFileDialog
 )
-from modules.settings.config_manager import (
+from modules.settings.settings_manager import (
     load_settings,
     save_settings,
     get_game_root_path,

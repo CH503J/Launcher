@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# @FileName  :ui_main.py
+# @FileName  :main_ui.py
 # @Time      :2025/7/4 15:16
 # @Author    :CH503J
 
 
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget,
-    QVBoxLayout, QLabel, QTabWidget
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QTabWidget
 )
 import sys
 from modules.settings.settings_ui import AboutTab
 from modules.launcher.launcher_ui import LauncherTab
-
 
 
 class MainWindow(QMainWindow):
