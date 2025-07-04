@@ -79,7 +79,7 @@ def get_server_path(settings: dict) -> str:
         # 初始化 SERVER_INFO 结构
         server_info = settings.get("SERVER_INFO", {})
         server_info["SERVER_PATH"] = os.path.abspath(server_path)
-        server_info.setdefault("SERVER_NAME", "")
+        server_info["SERVER_NAME"] = "SPT.Server"
         server_info.setdefault("SERVER_VERSION", "")
 
         settings["SERVER_INFO"] = server_info
@@ -90,3 +90,34 @@ def get_server_path(settings: dict) -> str:
     else:
         print("[提示] server.exe 不存在于指定根目录")
         return ""
+
+def get_fika_server_path(settings: dict) -> str:
+    """
+    查找游戏根目录下的 FIKA PowerShell 服务脚本 (.ps1)
+    找到后将其路径与文件名写入 FIKA_SERVER_INFO 并保存配置
+    参数:
+        settings (dict): 当前配置项
+    返回:
+        str: 找到的 .ps1 文件的绝对路径，未找到则返回空字符串
+    """
+    game_root = settings.get("GAME_ROOT_PATH", "")
+    if not game_root or not os.path.isdir(game_root):
+        print("[提示] 无效的游戏根目录")
+        return ""
+
+    for file in os.listdir(game_root):
+        if file.lower().endswith(".ps1"):
+            full_path = os.path.abspath(os.path.join(game_root, file))
+            fika_info = settings.get("FIKA_SERVER_INFO", {})
+            fika_info["FIKA_SERVER_PATH"] = full_path
+            fika_info["FIKA_SERVER_NAME"] = os.path.splitext(file)[0]
+            fika_info.setdefault("FIKA_SERVER_VERSION", "")
+
+            settings["FIKA_SERVER_INFO"] = fika_info
+            save_settings(settings)
+
+            print(f"[发现] FIKA 脚本路径：{full_path}")
+            return full_path
+
+    print("[提示] 根目录未找到任何 .ps1 脚本")
+    return ""

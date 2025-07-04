@@ -1,13 +1,18 @@
 {
-    "GAME_ROOT_PATH": "C:/Users/junchen/OneDrive - MSFT/2.Game/Game/Escape From Tarkov/3.11.3.0.16.1.3.35392/3.11.3.0.16.1.3.35392 Server",
+    "GAME_ROOT_PATH": "C:/OneDrive/ChenJun/OneDrive - MSFT/2.Game/Game/Escape From Tarkov/3.11.3.0.16.1.3.35392/3.11.3.0.16.1.3.35392 Server",
     "APP_INFO": {
         "APP_NAME": "Launcher",
         "APP_VERSION": "v0.0.1",
         "APP_AUTHOR": "CH503J"
     },
     "SERVER_INFO": {
-        "SERVER_NAME": "",
+        "SERVER_NAME": "SPT.Server",
         "SERVER_VERSION": "",
-        "SERVER_PATH": "C:\\Users\\junchen\\OneDrive - MSFT\\2.Game\\Game\\Escape From Tarkov\\3.11.3.0.16.1.3.35392\\3.11.3.0.16.1.3.35392 Server\\SPT.Server.exe"
+        "SERVER_PATH": "C:\\OneDrive\\ChenJun\\OneDrive - MSFT\\2.Game\\Game\\Escape From Tarkov\\3.11.3.0.16.1.3.35392\\3.11.3.0.16.1.3.35392 Server\\SPT.Server.exe"
+    },
+    "FIKA_SERVER_INFO": {
+        "FIKA_SERVER_NAME": "Start_headless_6842ca862d8da9df84002294",
+        "FIKA_SERVER_VERSION": "",
+        "FIKA_SERVER_PATH": "C:\\OneDrive\\ChenJun\\OneDrive - MSFT\\2.Game\\Game\\Escape From Tarkov\\3.11.3.0.16.1.3.35392\\3.11.3.0.16.1.3.35392 Server\\Start_headless_6842ca862d8da9df84002294.ps1"
     }
 }

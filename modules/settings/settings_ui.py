@@ -14,7 +14,8 @@ from modules.settings.config_manager import (
     save_settings,
     get_game_root_path,
     get_app_info,
-    get_server_path
+    get_server_path,
+    get_fika_server_path
 )
 
 
@@ -70,8 +71,8 @@ class AboutTab(QWidget):
 
     def load_ui_settings(self):
         self.settings = load_settings()
-        path = get_server_path(self.settings)
-        print(f"[发现] 服务器路径：{path}")
+        get_server_path(self.settings)
+        get_fika_server_path(self.settings)
         game_path = get_game_root_path(self.settings)
         self.service_path_input.setText(game_path)
 
@@ -87,6 +88,11 @@ class AboutTab(QWidget):
             self.service_path_input.setText(folder)
 
     def save_settings(self):
+        """
+        保存用户设置，将界面上的游戏根目录路径保存到配置文件中。
+        如果输入路径为空，则打印提示信息并返回。
+        保存成功后会更新界面显示的设置信息。
+        """
         service_path = self.service_path_input.text().strip()
         if not service_path:
             print("[提示] 路径为空，未保存")
