@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
 )
 
 from modules.launcher.launcher_service_manager import start_server
+from modules.launcher.log_reader import LogReaderThread
 
 
 class LauncherTab(QWidget):
@@ -40,8 +41,8 @@ class LauncherTab(QWidget):
         button_layout.addWidget(self.stop_button)
 
         layout.addWidget(self.status_label)
-        layout.addWidget(self.log_output)       # 日志框放中间
-        layout.addLayout(button_layout)          # 按钮横排放最底部
+        layout.addWidget(self.log_output)  # 日志框放中间
+        layout.addLayout(button_layout)  # 按钮横排放最底部
 
         self.setLayout(layout)
 
@@ -49,17 +50,19 @@ class LauncherTab(QWidget):
         self.stop_button.clicked.connect(self.stop_service)
 
     def start_service(self):
-        # 这里写启动服务逻辑，比如调用 launcher_service_manager.py
-        self.status_label.setText("服务状态：已启动")
-        self.append_log("服务已启动...")
-
-        def log_callback(text):
-            self.append_log(text)
-        success = start_server(log_callback)
-        if success:
-            self.status_label.setText("服务状态：已启动")
-        else:
+        self.process = start_server()
+        if not self.process:
             self.status_label.setText("服务状态：启动失败")
+            self.append_log("服务启动失败")
+            return
+
+        self.status_label.setText("服务状态：已启动")
+        self.append_log("服务启动中...")
+
+        # 创建并启动日志线程
+        self.log_thread = LogReaderThread(self.process)
+        self.log_thread.log_received.connect(self.append_log)  # 线程安全更新UI
+        self.log_thread.start()
 
     def stop_service(self):
         # 这里写停止服务逻辑
@@ -70,4 +73,3 @@ class LauncherTab(QWidget):
         """向日志框追加内容并自动滚动到底部"""
         self.log_output.append(text)
         self.log_output.verticalScrollBar().setValue(self.log_output.verticalScrollBar().maximum())
-
