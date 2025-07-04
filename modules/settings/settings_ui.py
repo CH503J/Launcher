@@ -13,7 +13,8 @@ from modules.settings.config_manager import (
     load_settings,
     save_settings,
     get_game_root_path,
-    get_app_info
+    get_app_info,
+    get_server_path
 )
 
 
@@ -69,6 +70,8 @@ class AboutTab(QWidget):
 
     def load_ui_settings(self):
         self.settings = load_settings()
+        path = get_server_path(self.settings)
+        print(f"[发现] 服务器路径：{path}")
         game_path = get_game_root_path(self.settings)
         self.service_path_input.setText(game_path)
 

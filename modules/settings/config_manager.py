@@ -15,9 +15,7 @@ def load_settings():
     """
     读取设置文件
     尝试加载指定路径的JSON配置文件，若文件不存在或解析失败则返回空字典
-    
-    返回:
-        dict: 从配置文件加载的数据，失败时返回空字典
+    返回: dict: 从配置文件加载的数据，失败时返回空字典
     """
     if os.path.exists(SETTINGS_FILE):
         try:
@@ -32,12 +30,8 @@ def save_settings(settings: dict):
     """
     保存设置文件
     将提供的字典数据写入指定路径的JSON配置文件，若写入过程中发生异常则打印错误信息
-
-    参数:
-        settings (dict): 要写入配置文件的数据字典
-
-    返回:
-        None
+    参数: settings (dict): 要写入配置文件的数据字典
+    返回: None
     """
     try:
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
@@ -49,12 +43,8 @@ def save_settings(settings: dict):
 def get_game_root_path(settings: dict) -> str:
     """
     获取配置中的游戏根目录路径
-
-    参数:
-        settings (dict): 包含配置项的字典对象
-
-    返回:
-        str: 配置文件中 "GAME_ROOT_PATH" 对应的值，如果不存在则返回空字符串
+    参数: settings (dict): 包含配置项的字典对象
+    返回: str: 配置文件中 "GAME_ROOT_PATH" 对应的值，如果不存在则返回空字符串
     """
     return settings.get("GAME_ROOT_PATH", "")
 
@@ -62,11 +52,41 @@ def get_game_root_path(settings: dict) -> str:
 def get_app_info(settings: dict) -> dict:
     """
     获取配置中的应用程序信息(APP_INFO)
-
-    参数:
-        settings (dict): 包含配置项的字典对象
-
-    返回:
-        dict: 配置文件中 "APP_INFO" 对应的值，如果不存在则返回空字典
+    参数: settings (dict): 包含配置项的字典对象
+    返回: dict: 配置文件中 "APP_INFO" 对应的值，如果不存在则返回空字典
     """
     return settings.get("APP_INFO", {})
+
+
+def get_server_path(settings: dict) -> str:
+    """
+    获取游戏根目录下的 server.exe 路径。
+    如果存在，则将其保存到 SERVER_INFO 中，并返回该路径。
+
+    参数:
+        settings (dict): 当前配置项
+
+    返回:
+        str: server.exe 的绝对路径；未找到则返回空字符串
+    """
+    game_root = settings.get("GAME_ROOT_PATH", "")
+    if not game_root or not os.path.isdir(game_root):
+        print("[提示] 无效的游戏根目录")
+        return ""
+
+    server_path = os.path.join(game_root, "SPT.Server.exe")
+    if os.path.isfile(server_path):
+        # 初始化 SERVER_INFO 结构
+        server_info = settings.get("SERVER_INFO", {})
+        server_info["SERVER_PATH"] = os.path.abspath(server_path)
+        server_info.setdefault("SERVER_NAME", "")
+        server_info.setdefault("SERVER_VERSION", "")
+
+        settings["SERVER_INFO"] = server_info
+        save_settings(settings)
+
+        print(f"[发现] server.exe 路径：{server_path}")
+        return server_path
+    else:
+        print("[提示] server.exe 不存在于指定根目录")
+        return ""
