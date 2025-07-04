@@ -33,6 +33,7 @@ server_process = None
 
 
 def start_server():
+    global server_process
     settings = load_settings()
     server_path = settings.get("SERVER_INFO", {}).get("SERVER_PATH", "")
     if not server_path or not os.path.isfile(server_path):
@@ -50,7 +51,28 @@ def start_server():
             bufsize=1,
             cwd=server_dir
         )
+        server_process = process
         return process
     except Exception as e:
         print(f"[错误] 启动失败: {e}")
         return None
+
+def stop_server():
+    global server_process
+
+    if server_process and server_process.poll() is None:
+        try:
+            server_process.terminate()
+            server_process.wait(timeout=5)
+            print("[停止成功] Server 已终止")
+        except Exception as e:
+            print(f"[停止失败] 尝试终止 server 进程时出错: {e}")
+            try:
+                server_process.kill()
+                print("[强制终止] Server 已被 kill")
+            except Exception as ke:
+                print(f"[严重错误] kill 失败：{ke}")
+    else:
+        print("[提示] Server 当前未在运行或已结束")
+
+    server_process = None  # 清空引用
