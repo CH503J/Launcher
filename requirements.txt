@@ -1,3 +1,0 @@
-flask
-pyqt5
-requests
