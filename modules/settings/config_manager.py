@@ -58,66 +58,95 @@ def get_app_info(settings: dict) -> dict:
     return settings.get("APP_INFO", {})
 
 
-def get_server_path(settings: dict) -> str:
+def get_server_info(settings: dict) -> dict:
     """
-    获取游戏根目录下的 server.exe 路径。
-    如果存在，则将其保存到 SERVER_INFO 中，并返回该路径。
-
-    参数:
-        settings (dict): 当前配置项
-
-    返回:
-        str: server.exe 的绝对路径；未找到则返回空字符串
+    收集并返回 SERVER_INFO，包括路径、名称、版本
+    将其保存进 settings["SERVER_INFO"]
     """
     game_root = settings.get("GAME_ROOT_PATH", "")
+    server_info = settings.get("SERVER_INFO", {})
+    updated = False
+
     if not game_root or not os.path.isdir(game_root):
         print("[提示] 无效的游戏根目录")
-        return ""
+        return server_info
 
-    server_path = os.path.join(game_root, "SPT.Server.exe")
-    if os.path.isfile(server_path):
-        # 初始化 SERVER_INFO 结构
-        server_info = settings.get("SERVER_INFO", {})
-        server_info["SERVER_PATH"] = os.path.abspath(server_path)
+    # 获取路径和名称
+    exe_path = os.path.join(game_root, "SPT.Server.exe")
+    if os.path.isfile(exe_path):
+        server_info["SERVER_PATH"] = os.path.abspath(exe_path)
         server_info["SERVER_NAME"] = "SPT.Server"
-        server_info.setdefault("SERVER_VERSION", "")
+        updated = True
+        print(f"[发现] SPT Server 路径: {exe_path}")
+    else:
+        print("[提示] 未找到 SPT.Server.exe")
 
+    # 获取版本号
+    core_path = os.path.join(game_root, "SPT_Data", "Server", "configs", "core.json")
+    if os.path.isfile(core_path):
+        try:
+            with open(core_path, "r", encoding="utf-8") as f:
+                core = json.load(f)
+                version = core.get("sptVersion", "")
+                if version:
+                    server_info["SERVER_VERSION"] = version
+                    updated = True
+                    print(f"[版本] SPT Server 版本: {version}")
+        except Exception as e:
+            print(f"[错误] 读取 core.json 失败: {e}")
+    else:
+        print("[提示] 未找到 core.json")
+
+    if updated:
         settings["SERVER_INFO"] = server_info
         save_settings(settings)
 
-        print(f"[发现] server.exe 路径：{server_path}")
-        return server_path
-    else:
-        print("[提示] server.exe 不存在于指定根目录")
-        return ""
+    return server_info
 
-def get_fika_server_path(settings: dict) -> str:
+
+def get_fika_server_info(settings: dict) -> dict:
     """
-    查找游戏根目录下的 FIKA PowerShell 服务脚本 (.ps1)
-    找到后将其路径与文件名写入 FIKA_SERVER_INFO 并保存配置
-    参数:
-        settings (dict): 当前配置项
-    返回:
-        str: 找到的 .ps1 文件的绝对路径，未找到则返回空字符串
+    收集并返回 FIKA_SERVER_INFO，包括路径、名称、版本
+    将其保存进 settings["FIKA_SERVER_INFO"]
     """
     game_root = settings.get("GAME_ROOT_PATH", "")
+    fika_info = settings.get("FIKA_SERVER_INFO", {})
+    updated = False
+
     if not game_root or not os.path.isdir(game_root):
         print("[提示] 无效的游戏根目录")
-        return ""
+        return fika_info
 
+    # 查找 .ps1 脚本
     for file in os.listdir(game_root):
         if file.lower().endswith(".ps1"):
             full_path = os.path.abspath(os.path.join(game_root, file))
-            fika_info = settings.get("FIKA_SERVER_INFO", {})
             fika_info["FIKA_SERVER_PATH"] = full_path
             fika_info["FIKA_SERVER_NAME"] = os.path.splitext(file)[0]
-            fika_info.setdefault("FIKA_SERVER_VERSION", "")
+            updated = True
+            print(f"[发现] FIKA 脚本路径: {full_path}")
+            break
+    else:
+        print("[提示] 未找到 .ps1 文件")
 
-            settings["FIKA_SERVER_INFO"] = fika_info
-            save_settings(settings)
+    # 获取版本号
+    pkg_path = os.path.join(game_root, "user", "mods", "fika-server", "package.json")
+    if os.path.isfile(pkg_path):
+        try:
+            with open(pkg_path, "r", encoding="utf-8") as f:
+                pkg = json.load(f)
+                version = pkg.get("version", "")
+                if version:
+                    fika_info["FIKA_SERVER_VERSION"] = version
+                    updated = True
+                    print(f"[版本] FIKA Server 版本: {version}")
+        except Exception as e:
+            print(f"[错误] 读取 package.json 失败: {e}")
+    else:
+        print("[提示] 未找到 package.json")
 
-            print(f"[发现] FIKA 脚本路径：{full_path}")
-            return full_path
+    if updated:
+        settings["FIKA_SERVER_INFO"] = fika_info
+        save_settings(settings)
 
-    print("[提示] 根目录未找到任何 .ps1 脚本")
-    return ""
+    return fika_info

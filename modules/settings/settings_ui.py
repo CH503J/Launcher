@@ -14,8 +14,8 @@ from modules.settings.config_manager import (
     save_settings,
     get_game_root_path,
     get_app_info,
-    get_server_path,
-    get_fika_server_path
+    get_server_info,
+    get_fika_server_info
 )
 
 
@@ -71,8 +71,10 @@ class AboutTab(QWidget):
 
     def load_ui_settings(self):
         self.settings = load_settings()
-        get_server_path(self.settings)
-        get_fika_server_path(self.settings)
+        # 获取服务器信息
+        get_server_info(self.settings)
+        # 获取 FIKA 服务信息
+        get_fika_server_info(self.settings)
         game_path = get_game_root_path(self.settings)
         self.service_path_input.setText(game_path)
 
