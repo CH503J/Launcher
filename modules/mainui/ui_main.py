@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# @FileName  :ui_main.py.py
+# @FileName  :ui_main.py
 # @Time      :2025/7/4 15:16
 # @Author    :CH503J
 
@@ -11,14 +11,8 @@ from PyQt6.QtWidgets import (
 )
 import sys
 from modules.settings.settings_ui import AboutTab
+from modules.launcher.launcher_ui import LauncherTab
 
-class LauncherTab(QWidget):
-    def __init__(self):
-        super().__init__()
-        layout = QVBoxLayout()
-        label = QLabel("这是服务启停页面")
-        layout.addWidget(label)
-        self.setLayout(layout)
 
 
 class MainWindow(QMainWindow):
