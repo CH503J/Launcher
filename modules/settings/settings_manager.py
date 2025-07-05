@@ -7,19 +7,33 @@
 
 import os
 import json
+import sys
 
-SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "config", "settings.json")
+
+def get_app_config_path(app_name="SPTFikaTool") -> str:
+    """
+    获取配置文件的路径（用户目录下）
+    兼容开发环境与 PyInstaller 打包后运行环境
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller 打包后的路径（用户数据路径）
+        base_dir = os.path.join(os.environ.get('APPDATA', os.path.expanduser("~")), app_name)
+    else:
+        # 源码开发环境中使用项目根目录下的 config
+        base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "config")
+
+    os.makedirs(base_dir, exist_ok=True)
+    return os.path.abspath(os.path.join(base_dir, "settings.json"))
+
+
+SETTINGS_FILE = get_app_config_path()
 
 
 def load_settings():
-    """
-    读取设置文件
-    尝试加载指定路径的JSON配置文件，若文件不存在或解析失败则返回空字典
-    返回: dict: 从配置文件加载的数据，失败时返回空字典
-    """
     if os.path.exists(SETTINGS_FILE):
         try:
             with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                print(f"[配置加载成功] 配置文件路径: {SETTINGS_FILE}")
                 return json.load(f)
         except json.JSONDecodeError as e:
             print(f"[配置加载失败] JSON 解析错误：{e}")
@@ -27,12 +41,6 @@ def load_settings():
 
 
 def save_settings(settings: dict):
-    """
-    保存设置文件
-    将提供的字典数据写入指定路径的JSON配置文件，若写入过程中发生异常则打印错误信息
-    参数: settings (dict): 要写入配置文件的数据字典
-    返回: None
-    """
     try:
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(settings, f, indent=4, ensure_ascii=False)

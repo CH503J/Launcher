@@ -9,7 +9,9 @@ import json
 import os
 import subprocess
 
-SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "config", "settings.json")
+from modules.settings.settings_manager import get_app_config_path
+
+SETTINGS_FILE = get_app_config_path()
 
 
 def read_stdout(pipe, callback):
