@@ -5,118 +5,124 @@
 # @Author    :CH503J
 
 import os
+import sqlite3
 from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QLabel,
-    QGroupBox,
-    QFormLayout,
-    QLineEdit,
-    QPushButton,
-    QHBoxLayout,
-    QFileDialog
+    QWidget, QVBoxLayout, QLabel, QGroupBox, QFormLayout,
+    QLineEdit, QPushButton, QHBoxLayout, QFileDialog
 )
 from modules.settings.settings_manager import (
-    load_settings,
-    save_settings,
     get_game_root_path,
-    get_app_info,
+    update_game_info_value,
     get_server_info,
-    get_fika_server_info
+    get_fika_server_info,
+    get_db_path
 )
+
+
+def get_app_info_from_db() -> dict:
+    db_path = get_db_path()
+    if not os.path.exists(db_path):
+        print("[错误] 数据库文件不存在")
+        return {}
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT app_name, version, author, github_link, example_path
+                FROM about_info LIMIT 1
+            """)
+            row = cursor.fetchone()
+            if row:
+                return dict(zip([desc[0] for desc in cursor.description], row))
+    except Exception as e:
+        print(f"[错误] 读取 about_info 失败：{e}")
+    return {}
 
 
 class AboutTab(QWidget):
     def __init__(self):
         super().__init__()
-        self.settings = {}
+        self.app_info = get_app_info_from_db()
         self.init_ui()
-        self.load_ui_settings()
+        self.load_info()
 
     def init_ui(self):
         layout = QVBoxLayout()
 
-        # 关于软件信息区域
-        self.about_group = QGroupBox("关于软件")
+        # --- 软件信息区域 ---
+        about_group = QGroupBox("关于软件")
         about_layout = QVBoxLayout()
-        self.app_name_label = QLabel()
-        self.app_version_label = QLabel()
-        self.app_author_label = QLabel()
-        about_layout.addWidget(self.app_name_label)
-        about_layout.addWidget(self.app_version_label)
-        about_layout.addWidget(self.app_author_label)
-        self.about_group.setLayout(about_layout)
 
-        # GitHub 项目链接
-        self.github_link_label = QLabel('<a href="https://github.com/CH503J/Launcher">🌐 GitHub 项目主页</a>')
-        self.github_link_label.setOpenExternalLinks(True)
-        self.github_link_label.setStyleSheet("QLabel { color: #1e90ff; font-size: 14px; }")
-        about_layout.addWidget(self.github_link_label)
+        self.label_name = QLabel()
+        self.label_version = QLabel()
+        self.label_author = QLabel()
 
-        # 游戏根目录设置区域
+        about_layout.addWidget(self.label_name)
+        about_layout.addWidget(self.label_version)
+        about_layout.addWidget(self.label_author)
+
+        self.github_label = QLabel(
+            f'<a href="{self.app_info.get("github_link", "https://example.com")}">🌐 GitHub 主页</a>'
+        )
+        self.github_label.setOpenExternalLinks(True)
+        self.github_label.setStyleSheet("QLabel { color: #1e90ff; font-size: 14px; }")
+        about_layout.addWidget(self.github_label)
+
+        about_group.setLayout(about_layout)
+
+        # --- 设置区域 ---
         settings_group = QGroupBox("软件设置")
-        settings_layout = QFormLayout()
+        form_layout = QFormLayout()
 
-        self.service_path_input = QLineEdit()
-        self.service_path_input.setPlaceholderText("例如：C:/Games/MyGame")
+        self.input_path = QLineEdit()
+        self.input_path.setPlaceholderText(self.app_info.get("example_path", "请输入路径"))
 
-        self.select_path_button = QPushButton("选择路径")
-        self.select_path_button.clicked.connect(self.select_path)
+        btn_select = QPushButton("选择路径")
+        btn_select.clicked.connect(self.select_path)
 
         path_layout = QHBoxLayout()
-        path_layout.addWidget(self.service_path_input)
-        path_layout.addWidget(self.select_path_button)
+        path_layout.addWidget(self.input_path)
+        path_layout.addWidget(btn_select)
 
-        settings_layout.addRow("游戏根目录：", path_layout)
+        btn_save = QPushButton("保存设置")
+        btn_save.clicked.connect(self.save_path)
 
-        # 保存按钮
-        self.save_button = QPushButton("保存设置")
-        self.save_button.clicked.connect(self.save_settings)
-        settings_layout.addRow(self.save_button)
+        form_layout.addRow("游戏根目录：", path_layout)
+        form_layout.addRow(btn_save)
 
-        settings_group.setLayout(settings_layout)
+        settings_group.setLayout(form_layout)
 
-        # 布局整合
-        layout.addWidget(self.about_group)
+        # --- 主布局 ---
+        layout.addWidget(about_group)
         layout.addWidget(settings_group)
         layout.addStretch()
         self.setLayout(layout)
 
-    def load_ui_settings(self):
-        self.settings = load_settings()
-        # 获取服务器信息
-        get_server_info(self.settings)
-        # 获取 FIKA 服务信息
-        get_fika_server_info(self.settings)
-        game_path = get_game_root_path(self.settings)
-        self.service_path_input.setText(game_path)
+    def load_info(self):
+        # 设置软件信息
+        self.label_name.setText(f"软件名称：{self.app_info.get('app_name', '未知')}")
+        self.label_version.setText(f"版本号：{self.app_info.get('version', '未知')}")
+        self.label_author.setText(f"开发者：{self.app_info.get('author', '未知')}")
 
-        app_info = get_app_info(self.settings)
-        # self.app_name_label.setText(f"软件名称：{app_info.get('APP_NAME', '未知软件')}")
-        # self.app_version_label.setText(f"版本号：{app_info.get('APP_VERSION', '未知版本')}")
-        # self.app_author_label.setText(f"开发者：{app_info.get('APP_AUTHOR', '未知作者')}")
-        self.app_name_label.setText(f"软件名称：SPT-Fika launcher")
-        self.app_version_label.setText(f"版本号：v 0.1")
-        self.app_author_label.setText(f"开发者：CH503J")
+        # 显示游戏路径
+        self.input_path.setText(get_game_root_path())
+
+        # 自动扫描服务端
+        get_server_info()
+        get_fika_server_info()
 
     def select_path(self):
-        current_path = self.service_path_input.text().strip() or os.path.expanduser("~")
-        folder = QFileDialog.getExistingDirectory(self, "选择游戏根目录", current_path)
+        current = self.input_path.text().strip() or os.path.expanduser("~")
+        folder = QFileDialog.getExistingDirectory(self, "选择游戏根目录", current)
         if folder:
-            self.service_path_input.setText(folder)
+            self.input_path.setText(folder)
 
-    def save_settings(self):
-        """
-        保存用户设置，将界面上的游戏根目录路径保存到配置文件中。
-        如果输入路径为空，则打印提示信息并返回。
-        保存成功后会更新界面显示的设置信息。
-        """
-        service_path = self.service_path_input.text().strip()
-        if not service_path:
+    def save_path(self):
+        path = self.input_path.text().strip()
+        if not path:
             print("[提示] 路径为空，未保存")
             return
-
-        self.settings["GAME_ROOT_PATH"] = service_path
-        save_settings(self.settings)
-        print(f"[保存成功] 路径：{service_path}")
-        self.load_ui_settings()
+        update_game_info_value("game_root_path", path)
+        print(f"[保存成功] 路径：{path}")
+        self.load_info()

@@ -4,18 +4,18 @@
 # @Time      :2025/7/4 15:15
 # @Author    :CH503J
 
-
-import json
 import os
 import subprocess
 
-from modules.settings.settings_manager import get_app_config_path
+from modules.settings.settings_manager import get_game_info_value
 
-SETTINGS_FILE = get_app_config_path()
+# 进程句柄
+server_process = None
+fika_process = None
 
 
 def read_stdout(pipe, callback):
-    """不断读取pipe中的内容，回调返回读取的字符串"""
+    """不断读取 pipe 中的内容，回调返回读取的字符串"""
     while True:
         line = pipe.readline()
         if not line:
@@ -23,26 +23,16 @@ def read_stdout(pipe, callback):
         callback(line.rstrip())
 
 
-def load_settings():
-    if os.path.exists(SETTINGS_FILE):
-        with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-
-# 进程句柄（全局变量，后面方便停止）
-server_process = None
-fika_process = None
-
-
 def start_server():
+    """
+    启动 SPT.Server.exe
+    从数据库中读取 server_path 字段
+    """
     global server_process
-    settings = load_settings()
-    server_path = settings.get("SERVER_INFO", {}).get("SERVER_PATH", "")
+    server_path = get_game_info_value("server_path")
     if not server_path or not os.path.isfile(server_path):
+        print("[错误] 无效的 server_path")
         return None
-
-    server_dir = os.path.dirname(server_path)
 
     try:
         process = subprocess.Popen(
@@ -52,41 +42,38 @@ def start_server():
             text=True,
             encoding="utf-8",
             bufsize=1,
-            cwd=server_dir
+            cwd=os.path.dirname(server_path)
         )
         server_process = process
+        print(f"[启动成功] Server 启动于：{server_path}")
         return process
     except Exception as e:
-        print(f"[错误] 启动失败: {e}")
+        print(f"[错误] 启动 SPT.Server 失败: {e}")
         return None
 
 
 def start_fika_server():
     """
-    启动 Fika Server（PowerShell 脚本）
-    从配置文件中读取 FIKA_SERVER_INFO，使用 powershell 启动 ps1 脚本
-    :return: Popen 进程对象（启动失败返回 None）
+    启动 FIKA Server（.ps1 脚本）
+    从数据库中读取 fika_server_path 字段
     """
     global fika_process
-    settings = load_settings()
-    fika_path = settings.get("FIKA_SERVER_INFO", {}).get("FIKA_SERVER_PATH", "")
+    fika_path = get_game_info_value("fika_server_path")
     if not fika_path or not os.path.isfile(fika_path):
-        print("[错误] FIKA 启动脚本未找到")
+        print("[错误] 无效的 FIKA 脚本路径")
         return None
-
-    fika_dir = os.path.dirname(fika_path)
 
     try:
         process = subprocess.Popen(
             ["powershell", "-ExecutionPolicy", "Bypass", "-NoLogo", "-NoProfile", "-File", fika_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
+            text=True,
             bufsize=1,
-            cwd=fika_dir,
-            text=True
+            cwd=os.path.dirname(fika_path)
         )
         fika_process = process
-        print(f"[启动成功] 已启动 FIKA 脚本：{fika_path}")
+        print(f"[启动成功] FIKA 脚本：{fika_path}")
         return process
     except Exception as e:
         print(f"[错误] 启动 FIKA 脚本失败: {e}")
@@ -95,41 +82,39 @@ def start_fika_server():
 
 def stop_server():
     global server_process
-
     if server_process and server_process.poll() is None:
         try:
             server_process.terminate()
             server_process.wait(timeout=5)
             print("[停止成功] Server 已终止")
         except Exception as e:
-            print(f"[停止失败] 尝试终止 server 进程时出错: {e}")
+            print(f"[停止失败] 尝试终止 Server 进程失败: {e}")
             try:
                 server_process.kill()
-                print("[强制终止] Server 已被 kill")
+                print("[强制终止] Server 被 kill")
             except Exception as ke:
-                print(f"[严重错误] kill 失败：{ke}")
+                print(f"[严重错误] kill Server 失败: {ke}")
     else:
-        print("[提示] Server 当前未在运行或已结束")
+        print("[提示] Server 未在运行")
 
-    server_process = None  # 清空引用
+    server_process = None
 
 
 def stop_fika_server():
     global fika_process
-
     if fika_process and fika_process.poll() is None:
         try:
             fika_process.terminate()
             fika_process.wait(timeout=5)
             print("[停止成功] FIKA Server 已终止")
         except Exception as e:
-            print(f"[停止失败] 尝试终止 FIKA 进程时出错: {e}")
+            print(f"[停止失败] 尝试终止 FIKA 进程失败: {e}")
             try:
                 fika_process.kill()
-                print("[强制终止] FIKA Server 已被 kill")
+                print("[强制终止] FIKA Server 被 kill")
             except Exception as ke:
-                print(f"[严重错误] kill FIKA 失败：{ke}")
+                print(f"[严重错误] kill FIKA 失败: {ke}")
     else:
-        print("[提示] FIKA Server 当前未在运行或已结束")
+        print("[提示] FIKA Server 未在运行")
 
-    fika_process = None  # 清空引用
+    fika_process = None
