@@ -17,21 +17,39 @@ from modules.settings.settings_manager import (
     get_fika_server_info,
     get_db_path
 )
+from modules.settings.sql_manager import load_sql_queries
+
+def get_sql_path():
+    return os.path.join(
+        os.path.expanduser("~"),
+        "PycharmProjects",
+        "PythonProject",
+        "Launcher",
+        "sql",
+        "about_info.sql"
+    )
+
+SQL_QUERIES = load_sql_queries(get_sql_path())
 
 
 def get_app_info_from_db() -> dict:
-    db_path = get_db_path()
+    db_path = os.path.join(
+        os.path.expanduser("~"),
+        "PycharmProjects", "PythonProject", "Launcher",
+        "config", "database", "app.db")
     if not os.path.exists(db_path):
         print("[错误] 数据库文件不存在")
+        return {}
+
+    sql = SQL_QUERIES.get("get_app_info")
+    if not sql:
+        print("[错误] 未找到 SQL 语句：get_app_info")
         return {}
 
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("""
-                SELECT app_name, version, author, github_link, example_path
-                FROM about_info LIMIT 1
-            """)
+            cursor.execute(sql)
             row = cursor.fetchone()
             if row:
                 return dict(zip([desc[0] for desc in cursor.description], row))
