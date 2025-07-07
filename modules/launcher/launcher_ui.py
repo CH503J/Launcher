@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
     QCheckBox
 )
 
-from modules.launcher.launcher_service_manager import start_server, stop_server
+from modules.launcher.launcher_service_manager import start_server, stop_server, start_fika_server, stop_fika_server
 from modules.launcher.log_reader import LogReaderThread
 
 
@@ -62,35 +62,47 @@ class LauncherTab(QWidget):
 
     def start_service(self):
         self.log_all_enabled = self.log_all_checkbox.isChecked()
-        self.log_all_checkbox.setEnabled(False)  # 禁用勾选框，避免中途更改
+        self.log_all_checkbox.setEnabled(False)
         self.append_log(f"[提示] 启动服务，日志模式：{'全部' if self.log_all_enabled else '错误日志'}")
 
         self.process = start_server()
-        if not self.process:
+        self.fika_process = start_fika_server()
+
+        if not self.process and not self.fika_process:
             self.status_label.setText("服务状态：启动失败")
-            self.append_log("服务启动失败")
+            self.append_log("两个服务启动失败")
             if self.main_window:
-                self.main_window.show_toast("服务启动失败")
+                self.main_window.show_toast("两个服务均启动失败")
+            self.log_all_checkbox.setEnabled(True)
             return
 
-        self.status_label.setText("服务状态：已启动")
-        self.append_log("服务启动中。。。")
+        self.status_label.setText("服务状态：运行中")
+        self.append_log("服务启动中...")
+
         if self.main_window:
             self.main_window.show_toast("服务已成功启动")
 
-        # 创建并启动日志线程
-        self.log_thread = LogReaderThread(self.process, self.log_all_enabled)
-        self.log_thread.log_received.connect(self.append_log)
-        self.log_thread.start()
+        # 创建并启动日志线程（如果各自成功）
+        if self.process:
+            self.log_thread = LogReaderThread(self.process, self.log_all_enabled)
+            self.log_thread.log_received.connect(self.append_log)
+            self.log_thread.start()
+
+        if self.fika_process:
+            self.fika_log_thread = LogReaderThread(self.fika_process, self.log_all_enabled)
+            self.fika_log_thread.log_received.connect(self.append_log)
+            self.fika_log_thread.start()
 
     def stop_service(self):
         stop_server()
+        stop_fika_server()
+
         self.status_label.setText("服务状态：已停止")
-        self.append_log("服务已停止。")
+        self.append_log("两个服务均已停止")
+
         if self.main_window:
             self.main_window.show_toast("服务已停止")
 
-        # 重新启用勾选框
         self.log_all_checkbox.setEnabled(True)
 
     def append_log(self, text):
