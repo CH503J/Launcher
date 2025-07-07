@@ -9,6 +9,8 @@ from PyQt6.QtWidgets import QApplication
 
 from modules.mainui.main_ui import MainWindow
 
+
+# 获取项目结构命令   tree /F > structure.txt
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
