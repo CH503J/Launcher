@@ -115,11 +115,3 @@ class ToastNotification(QLabel):
             y = y0 + margin
 
         self.move(x, y)
-
-
-# 仅当直接运行此文件时，启动窗口（用于测试）
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())

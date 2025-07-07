@@ -47,6 +47,12 @@ class AboutTab(QWidget):
         about_layout.addWidget(self.app_author_label)
         self.about_group.setLayout(about_layout)
 
+        # GitHub 项目链接
+        self.github_link_label = QLabel('<a href="https://github.com/CH503J/Launcher">🌐 GitHub 项目主页</a>')
+        self.github_link_label.setOpenExternalLinks(True)
+        self.github_link_label.setStyleSheet("QLabel { color: #1e90ff; font-size: 14px; }")
+        about_layout.addWidget(self.github_link_label)
+
         # 游戏根目录设置区域
         settings_group = QGroupBox("软件设置")
         settings_layout = QFormLayout()
@@ -86,9 +92,12 @@ class AboutTab(QWidget):
         self.service_path_input.setText(game_path)
 
         app_info = get_app_info(self.settings)
-        self.app_name_label.setText(f"软件名称：{app_info.get('APP_NAME', '未知软件')}")
-        self.app_version_label.setText(f"版本号：{app_info.get('APP_VERSION', '未知版本')}")
-        self.app_author_label.setText(f"开发者：{app_info.get('APP_AUTHOR', '未知作者')}")
+        # self.app_name_label.setText(f"软件名称：{app_info.get('APP_NAME', '未知软件')}")
+        # self.app_version_label.setText(f"版本号：{app_info.get('APP_VERSION', '未知版本')}")
+        # self.app_author_label.setText(f"开发者：{app_info.get('APP_AUTHOR', '未知作者')}")
+        self.app_name_label.setText(f"软件名称：SPT-Fika launcher")
+        self.app_version_label.setText(f"版本号：v 0.1")
+        self.app_author_label.setText(f"开发者：CH503J")
 
     def select_path(self):
         current_path = self.service_path_input.text().strip() or os.path.expanduser("~")
