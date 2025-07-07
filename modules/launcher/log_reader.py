@@ -21,9 +21,9 @@ class LogReaderThread(QThread):
         self.show_all = show_all
 
     def run(self):
-        """
-        线程主函数：持续读取子进程输出，根据勾选策略选择性输出日志
-        """
+        if not self.process or not self.process.stdout:
+            return
+
         while True:
             line = self.process.stdout.readline()
             if not line:
