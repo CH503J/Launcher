@@ -7,22 +7,14 @@
 import os
 import sqlite3
 import json
+from modules.common.path_utils import get_db_path,get_sql_path
+from modules.database.sql_loader import load_sql_queries
 
-
-def get_db_path() -> str:
-    return os.path.join(
-        os.path.expanduser("~"),
-        "PycharmProjects",
-        "PythonProject",
-        "Launcher",
-        "config",
-        "database",
-        "app.db"
-    )
+SQL_QUERIES = load_sql_queries(get_sql_path("game_info.sql"))
 
 
 def get_game_info() -> dict:
-    db_path = get_db_path()
+    db_path = get_db_path("app.db")
     if not os.path.exists(db_path):
         print("[错误] 找不到数据库文件")
         return {}
@@ -30,11 +22,7 @@ def get_game_info() -> dict:
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("""
-                SELECT game_root_path, server_path, server_name, server_version,
-                       fika_server_path, fika_server_name, fika_server_version
-                FROM game_info LIMIT 1
-            """)
+            cursor.execute(SQL_QUERIES["get_game_info"])
             row = cursor.fetchone()
             if row:
                 return dict(zip([desc[0] for desc in cursor.description], row))
@@ -57,7 +45,7 @@ def update_game_info_value(key: str, value: str):
         print(f"[警告] 不允许更新非法字段: {key}")
         return
 
-    db_path = get_db_path()
+    db_path = get_db_path("app.db")
     if not os.path.exists(db_path):
         print("[错误] 找不到数据库文件")
         return
@@ -65,14 +53,13 @@ def update_game_info_value(key: str, value: str):
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
-
-            # 确保 game_info 至少有一行
-            cursor.execute("SELECT COUNT(*) FROM game_info")
+            cursor.execute(SQL_QUERIES["count_game_info"])
             if cursor.fetchone()[0] == 0:
-                cursor.execute(f"INSERT INTO game_info ({key}) VALUES (?)", (value,))
+                sql = SQL_QUERIES["insert_game_info_key"].format(key=key)
+                cursor.execute(sql, (value,))
             else:
-                cursor.execute(f"UPDATE game_info SET {key} = ?", (value,))
-
+                sql = SQL_QUERIES["update_game_info_key"].format(key=key)
+                cursor.execute(sql, (value,))
             conn.commit()
             print(f"[更新成功] {key} = {value}")
     except Exception as e:

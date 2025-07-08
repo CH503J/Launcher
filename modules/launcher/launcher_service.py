@@ -6,16 +6,19 @@
 
 import os
 import subprocess
-
 from modules.settings.settings_manager import get_game_info_value
 
-# 进程句柄
+# 全局进程句柄（用于服务控制）
 server_process = None
 fika_process = None
 
 
 def read_stdout(pipe, callback):
-    """不断读取 pipe 中的内容，回调返回读取的字符串"""
+    """
+    持续读取子进程输出并通过回调处理
+    :param pipe: 子进程的 stdout 管道
+    :param callback: 每读取一行后触发的回调函数
+    """
     while True:
         line = pipe.readline()
         if not line:
@@ -25,8 +28,9 @@ def read_stdout(pipe, callback):
 
 def start_server():
     """
-    启动 SPT.Server.exe
-    从数据库中读取 server_path 字段
+    启动 SPT.Server.exe 进程
+    - 从数据库字段 'server_path' 获取路径
+    - 启动成功后返回 Popen 对象
     """
     global server_process
     server_path = get_game_info_value("server_path")
@@ -54,8 +58,9 @@ def start_server():
 
 def start_fika_server():
     """
-    启动 FIKA Server（.ps1 脚本）
-    从数据库中读取 fika_server_path 字段
+    启动 FIKA Server 脚本（.ps1）
+    - 从数据库字段 'fika_server_path' 获取路径
+    - 启动成功后返回 Popen 对象
     """
     global fika_process
     fika_path = get_game_info_value("fika_server_path")
@@ -81,6 +86,9 @@ def start_fika_server():
 
 
 def stop_server():
+    """
+    停止 SPT.Server 进程，若无法正常终止则强制 kill
+    """
     global server_process
     if server_process and server_process.poll() is None:
         try:
@@ -101,6 +109,9 @@ def stop_server():
 
 
 def stop_fika_server():
+    """
+    停止 FIKA Server 脚本进程，若无法正常终止则强制 kill
+    """
     global fika_process
     if fika_process and fika_process.poll() is None:
         try:

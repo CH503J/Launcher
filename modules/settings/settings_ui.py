@@ -17,7 +17,7 @@ from modules.settings.settings_manager import (
     get_fika_server_info,
     get_db_path
 )
-from modules.settings.sql_manager import load_sql_queries
+from modules.database.sql_loader import load_sql_queries
 
 def get_sql_path():
     return os.path.join(
