@@ -18,7 +18,7 @@ from modules.settings.settings_controller import (
     get_db_path
 )
 from modules.database.sql_loader import load_sql_queries
-from modules.common.path_utils import get_sql_path
+from modules.common.path_utils import get_sql_path, get_db_path
 
 # def get_sql_path():
 #     return os.path.join(
@@ -34,10 +34,7 @@ SQL_QUERIES = load_sql_queries(get_sql_path("about_info.sql"))
 
 
 def get_app_info_from_db() -> dict:
-    db_path = os.path.join(
-        os.path.expanduser("~"),
-        "PycharmProjects", "PythonProject", "Launcher",
-        "config", "database", "app.db")
+    db_path = get_db_path("app.db")
     if not os.path.exists(db_path):
         print("[错误] 数据库文件不存在")
         return {}
