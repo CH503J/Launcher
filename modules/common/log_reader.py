@@ -7,6 +7,16 @@
 from PyQt6.QtCore import QThread, pyqtSignal
 
 
+def is_error_line(line: str) -> bool:
+    """
+    判断是否为错误日志行（用于筛选）
+    :param line: 日志行内容
+    :return: 若包含常见错误关键字则返回 True
+    """
+    keywords = ["error", "exception", "failed", "fatal", "critical"]
+    return any(kw in line.lower() for kw in keywords)
+
+
 class LogReaderThread(QThread):
     """
     子进程日志读取线程类
@@ -43,14 +53,5 @@ class LogReaderThread(QThread):
                 break
             line = line.rstrip()
 
-            if self.show_all or self.is_error_line(line):
+            if self.show_all or is_error_line(line):
                 self.log_received.emit(line)
-
-    def is_error_line(self, line: str) -> bool:
-        """
-        判断是否为错误日志行（用于筛选）
-        :param line: 日志行内容
-        :return: 若包含常见错误关键字则返回 True
-        """
-        keywords = ["error", "exception", "failed", "fatal", "critical"]
-        return any(kw in line.lower() for kw in keywords)

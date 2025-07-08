@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# @FileName  :settings_ui.py
+# @FileName  :about_ui.py
 # @Time      :2025/7/4 15:32
 # @Author    :CH503J
 
@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QGroupBox, QFormLayout,
     QLineEdit, QPushButton, QHBoxLayout, QFileDialog
 )
-from modules.settings.settings_manager import (
+from modules.settings.settings_controller import (
     get_game_root_path,
     update_game_info_value,
     get_server_info,
@@ -18,18 +18,19 @@ from modules.settings.settings_manager import (
     get_db_path
 )
 from modules.database.sql_loader import load_sql_queries
+from modules.common.path_utils import get_sql_path
 
-def get_sql_path():
-    return os.path.join(
-        os.path.expanduser("~"),
-        "PycharmProjects",
-        "PythonProject",
-        "Launcher",
-        "sql",
-        "about_info.sql"
-    )
+# def get_sql_path():
+#     return os.path.join(
+#         os.path.expanduser("~"),
+#         "PycharmProjects",
+#         "PythonProject",
+#         "Launcher",
+#         "sql",
+#         "about_info.sql"
+#     )
 
-SQL_QUERIES = load_sql_queries(get_sql_path())
+SQL_QUERIES = load_sql_queries(get_sql_path("about_info.sql"))
 
 
 def get_app_info_from_db() -> dict:

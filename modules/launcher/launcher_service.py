@@ -6,7 +6,7 @@
 
 import os
 import subprocess
-from modules.settings.settings_manager import get_game_info_value
+from modules.settings.settings_controller import get_game_info_value
 
 # 全局进程句柄（用于服务控制）
 server_process = None

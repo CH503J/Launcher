@@ -11,7 +11,7 @@ from modules.launcher.launcher_service import (
     start_fika_server,
     stop_fika_server,
 )
-from modules.launcher.log_reader import LogReaderThread
+from modules.common.log_reader import LogReaderThread
 
 
 class LauncherController:

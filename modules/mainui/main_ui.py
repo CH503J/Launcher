@@ -4,10 +4,8 @@
 # @Time      :2025/7/4 15:16
 # @Author    :CH503J
 
-import sys
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
-    QApplication,
     QMainWindow,
     QWidget,
     QVBoxLayout,
@@ -16,7 +14,7 @@ from PyQt6.QtWidgets import (
 )
 
 from modules.launcher.launcher_ui import LauncherTab
-from modules.settings.settings_ui import AboutTab
+from modules.settings.about_ui import AboutTab
 
 
 class MainWindow(QMainWindow):
