@@ -7,17 +7,18 @@
 import os
 import sqlite3
 import json
-from modules.common.path_utils import get_db_path,get_sql_path
+from modules.common.path_utils import get_db_path, get_sql_path
 from modules.database.sql_loader import load_sql_queries
 
 SQL_QUERIES = load_sql_queries(get_sql_path("game_info.sql"))
 
 
-def get_game_info() -> dict:
+def get_game_info(key: str) -> str | None:
+    """获取所有服务信息，包括根目录"""
     db_path = get_db_path("app.db")
     if not os.path.exists(db_path):
         print("[错误] 找不到数据库文件")
-        return {}
+        return None
 
     try:
         with sqlite3.connect(db_path) as conn:
@@ -25,17 +26,13 @@ def get_game_info() -> dict:
             cursor.execute(SQL_QUERIES["get_game_info"])
             row = cursor.fetchone()
             if row:
-                return dict(zip([desc[0] for desc in cursor.description], row))
+                return dict(zip([desc[0] for desc in cursor.description], row)).get(key, "")
     except Exception as e:
         print(f"[错误] 读取 game_info 失败：{e}")
-    return {}
-
-
-def get_game_info_value(key: str) -> str:
-    return get_game_info().get(key, "")
 
 
 def update_game_info_value(key: str, value: str):
+    """更新所有服务信息，包括根目录"""
     allowed_fields = {
         "game_root_path", "server_path", "server_name", "server_version",
         "fika_server_path", "fika_server_name", "fika_server_version"
@@ -66,12 +63,9 @@ def update_game_info_value(key: str, value: str):
         print(f"[更新失败] {e}")
 
 
-def get_game_root_path() -> str:
-    return get_game_info_value("game_root_path")
-
-
 def get_server_info() -> dict:
-    game_root = get_game_root_path()
+    """获取 spt-server 信息"""
+    game_root = get_game_info("game_root_path")
     if not game_root or not os.path.isdir(game_root):
         print("[提示] 无效的游戏根目录")
         return {}
@@ -107,7 +101,8 @@ def get_server_info() -> dict:
 
 
 def get_fika_server_info() -> dict:
-    game_root = get_game_root_path()
+    """获取 fika-server 信息"""
+    game_root = get_game_info("game_root_path")
     if not game_root or not os.path.isdir(game_root):
         print("[提示] 无效的游戏根目录")
         return {}

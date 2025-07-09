@@ -5,61 +5,29 @@
 # @Author    :CH503J
 
 import os
-import sqlite3
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QGroupBox, QFormLayout,
-    QLineEdit, QPushButton, QHBoxLayout, QFileDialog
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QGroupBox,
+    QFormLayout,
+    QLineEdit,
+    QPushButton,
+    QHBoxLayout,
+    QFileDialog
 )
 from modules.settings.settings_controller import (
-    get_game_root_path,
     update_game_info_value,
     get_server_info,
-    get_fika_server_info,
-    get_db_path
+    get_fika_server_info, get_game_info,
 )
-from modules.database.sql_loader import load_sql_queries
-from modules.common.path_utils import get_sql_path, get_db_path
-
-# def get_sql_path():
-#     return os.path.join(
-#         os.path.expanduser("~"),
-#         "PycharmProjects",
-#         "PythonProject",
-#         "Launcher",
-#         "sql",
-#         "about_info.sql"
-#     )
-
-SQL_QUERIES = load_sql_queries(get_sql_path("about_info.sql"))
-
-
-def get_app_info_from_db() -> dict:
-    db_path = get_db_path("app.db")
-    if not os.path.exists(db_path):
-        print("[错误] 数据库文件不存在")
-        return {}
-
-    sql = SQL_QUERIES.get("get_app_info")
-    if not sql:
-        print("[错误] 未找到 SQL 语句：get_app_info")
-        return {}
-
-    try:
-        with sqlite3.connect(db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(sql)
-            row = cursor.fetchone()
-            if row:
-                return dict(zip([desc[0] for desc in cursor.description], row))
-    except Exception as e:
-        print(f"[错误] 读取 about_info 失败：{e}")
-    return {}
+from modules.settings.about_controller import get_app_info
 
 
 class AboutTab(QWidget):
     def __init__(self):
         super().__init__()
-        self.app_info = get_app_info_from_db()
+        self.app_info = get_app_info()
         self.init_ui()
         self.load_info()
 
@@ -122,7 +90,7 @@ class AboutTab(QWidget):
         self.label_author.setText(f"开发者：{self.app_info.get('author', '未知')}")
 
         # 显示游戏路径
-        self.input_path.setText(get_game_root_path())
+        self.input_path.setText(get_game_info("game_root_path"))
 
         # 自动扫描服务端
         get_server_info()

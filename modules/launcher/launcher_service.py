@@ -6,7 +6,7 @@
 
 import os
 import subprocess
-from modules.settings.settings_controller import get_game_info_value
+from modules.settings.settings_controller import get_game_info
 
 # 全局进程句柄（用于服务控制）
 server_process = None
@@ -33,7 +33,7 @@ def start_server():
     - 启动成功后返回 Popen 对象
     """
     global server_process
-    server_path = get_game_info_value("server_path")
+    server_path = get_game_info("server_path")
     if not server_path or not os.path.isfile(server_path):
         print("[错误] 无效的 server_path")
         return None
@@ -63,7 +63,7 @@ def start_fika_server():
     - 启动成功后返回 Popen 对象
     """
     global fika_process
-    fika_path = get_game_info_value("fika_server_path")
+    fika_path = get_game_info("fika_server_path")
     if not fika_path or not os.path.isfile(fika_path):
         print("[错误] 无效的 FIKA 脚本路径")
         return None
