@@ -141,13 +141,4 @@ def search_language_info(keyword: str) -> list[dict]:
 
 
 if __name__ == '__main__':
-    # save_language_data(get_language_data())
-    # 只搜索 short_name 为 '6b43' 的条目
-    keyword = "6b43"
-    results = search_language_info(keyword)
-
-    print(f"[结果] 共找到 {len(results)} 条记录：")
-    for i, row in enumerate(results, 1):
-        print(f"\n--- 第 {i} 条记录 ---")
-        for key, value in row.items():
-            print(f"{key}: {value}")
+    save_language_data(get_language_data())

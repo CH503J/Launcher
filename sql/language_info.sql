@@ -1,13 +1,25 @@
 -- name: get_language_info
 INSERT INTO language_info (
-                item_id, name, short_name, description,
-                fail_message, success_message,
-                accept_player_message, decline_player_message, complete_player_message,
+                item_id,
+                name,
+                short_name,
+                description,
+                fail_message,
+                success_message,
+                accept_player_message,
+                decline_player_message,
+                complete_player_message,
                 other_value
             ) VALUES (
-                :item_id, :name, :short_name, :description,
-                :fail_message, :success_message,
-                :accept_player_message, :decline_player_message, :complete_player_message,
+                :item_id,
+                :name,
+                :short_name,
+                :description,
+                :fail_message,
+                :success_message,
+                :accept_player_message,
+                :decline_player_message,
+                :complete_player_message,
                 :other_value
             )
 
@@ -28,3 +40,8 @@ WHERE
     decline_player_message LIKE '%' || ? || '%' OR
     complete_player_message LIKE '%' || ? || '%' OR
     other_value LIKE '%' || ? || '%';
+
+-- name: search_data_by_field
+SELECT *
+FROM language_info
+WHERE {key} LIKE ?
