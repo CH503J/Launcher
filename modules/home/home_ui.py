@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
 )
 
 from modules.launcher.launcher_ui import LauncherTab
+from modules.search.search_ui import SearchTab
 from modules.settings.about_ui import AboutTab
 
 
@@ -33,6 +34,9 @@ class MainWindow(QMainWindow):
         tabs = QTabWidget()
         self.launcher_tab = LauncherTab(parent=self)  # 启停服务页面（会传入 main_window 用于调用 toast）
         tabs.addTab(self.launcher_tab, "启停")
+
+        self.search_tab = SearchTab()
+        tabs.addTab(self.search_tab, "搜索")
 
         # 关于页面（软件信息展示、路径设置）
         tabs.addTab(AboutTab(), "关于")
