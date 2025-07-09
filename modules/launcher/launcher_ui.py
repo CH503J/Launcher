@@ -70,7 +70,7 @@ class LauncherTab(QWidget):
 
         # 控制按钮区
         self.log_all_checkbox = QCheckBox("全部日志")
-        self.log_all_checkbox.setChecked(False)
+        self.log_all_checkbox.setChecked(True)
         self.log_all_checkbox.setToolTip("勾选后将输出所有日志，包括 info/debug")
 
         self.start_button = QPushButton("启动服务")

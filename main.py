@@ -5,7 +5,7 @@
 # @Author    :CH503J
 import sys
 from PyQt6.QtWidgets import QApplication
-from modules.mainui.main_ui import MainWindow
+from modules.home.home_ui import MainWindow
 
 # 获取项目结构命令   tree /F > structure.txt
 if __name__ == "__main__":
