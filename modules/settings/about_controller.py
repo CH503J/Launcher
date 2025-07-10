@@ -7,7 +7,7 @@
 import os
 import sqlite3
 from modules.common.path_utils import get_db_path, get_sql_path
-from modules.database.sql_loader import load_sql_queries
+from modules.common.sql_loader import load_sql_queries
 
 # 加载 SQL 查询语句
 SQL_QUERIES = load_sql_queries(get_sql_path("about_info.sql"))

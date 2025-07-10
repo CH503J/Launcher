@@ -8,7 +8,7 @@
 import sqlite3
 
 from modules.common.path_utils import get_db_path, get_sql_path
-from modules.database.sql_loader import load_sql_queries
+from modules.common.sql_loader import load_sql_queries
 
 SQL_QUERIES = load_sql_queries(get_sql_path("language_info.sql"))
 
