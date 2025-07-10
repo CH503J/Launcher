@@ -18,28 +18,8 @@ SQL_QUERIES = load_sql_queries(get_sql_path("language_info.sql"))
 
 def get_language_data() -> list[dict]:
     json_path = os.path.join(get_game_info("game_root_path"),
-                             "SPT_Data",
-                             "Server",
-                             "database",
-                             "locales",
-                             "global",
-                             "ch.json")
-    """
-    从指定 JSON 文件路径中读取语言数据并按 item_id 整理成结构化列表。
-    每条数据包含字段：
-    - item_id
-    - name
-    - short_name
-    - description
-    - fail_message
-    - success_message
-    - accept_player_message
-    - decline_player_message
-    - complete_player_message
-    - other_value（存放未识别字段）
-    :param json_path: JSON 文件完整路径
-    :return: list[dict]，每项为插入数据库的字段字典
-    """
+                             "SPT_Data", "Server", "database", "locales", "global", "ch.json")
+
     if not os.path.exists(json_path):
         print(f"[错误] 文件不存在：{json_path}")
         return []
@@ -51,16 +31,22 @@ def get_language_data() -> list[dict]:
             print(f"[错误] JSON 解析失败: {e}")
             return []
 
-    # 预定义字段映射
-    valid_suffix_map = {
+    # ITEM 类型（大驼峰命名）
+    item_suffix_map = {
         "Name": "name",
         "ShortName": "short_name",
-        "Description": "description",
-        "FailMessage": "fail_message",
-        "SuccessMessage": "success_message",
-        "AcceptPlayerMessage": "accept_player_message",
-        "DeclinePlayerMessage": "decline_player_message",
-        "CompletePlayerMessage": "complete_player_message"
+        "Description": "description"
+    }
+
+    # QUEST 类型（小驼峰命名）
+    quest_suffix_map = {
+        "name": "name",
+        "description": "description",
+        "failMessageText": "fail_message",
+        "successMessageText": "success_message",
+        "acceptPlayerMessage": "accept_player_message",
+        "declinePlayerMessage": "decline_player_message",
+        "completePlayerMessage": "complete_player_message"
     }
 
     grouped_data = defaultdict(lambda: {
@@ -73,24 +59,29 @@ def get_language_data() -> list[dict]:
         "accept_player_message": None,
         "decline_player_message": None,
         "complete_player_message": None,
-        "other_value": ""
+        "other_value": "",
+        "type": "OTHER"
     })
 
     for key, value in raw_data.items():
         parts = key.strip().rsplit(" ", 1)
         if len(parts) == 2:
-            item_id, suffix = parts
-            db_field = valid_suffix_map.get(suffix)
-            if db_field:
-                grouped_data[item_id][db_field] = value
+            entity_id, suffix = parts
+            if suffix in item_suffix_map:
+                field = item_suffix_map[suffix]
+                grouped_data[entity_id][field] = value
+                grouped_data[entity_id]["type"] = "ITEM"
+            elif suffix in quest_suffix_map:
+                field = quest_suffix_map[suffix]
+                grouped_data[entity_id][field] = value
+                grouped_data[entity_id]["type"] = "QUEST"
             else:
-                grouped_data[item_id]["other_value"] += f"{key}: {value}\n"
+                grouped_data[entity_id]["other_value"] += f"{key}: {value}\n"
         else:
-            # 无法拆分出后缀的直接放入other_value
-            item_id = key
-            grouped_data[item_id]["other_value"] += f"{key}: {value}\n"
+            entity_id = key
+            grouped_data[entity_id]["other_value"] += f"{key}: {value}\n"
 
-        grouped_data[item_id]["item_id"] = item_id
+        grouped_data[entity_id]["item_id"] = entity_id
 
     return list(grouped_data.values())
 
@@ -98,7 +89,7 @@ def get_language_data() -> list[dict]:
 def save_language_data(data_list: list[dict]) -> None:
     """
     将语言数据写入 language_info 表中。
-    :param data_list: 从 get_language_data() 返回的字典列表。
+    要求 data_list 中每个 dict 包含 type 字段（ITEM / QUEST / OTHER）。
     """
     db_path = get_db_path("app.db")
     if not data_list:
@@ -109,9 +100,10 @@ def save_language_data(data_list: list[dict]) -> None:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
 
-            # 可选：清空旧数据，避免重复插入（根据实际需求决定）
+            # 清空旧数据，避免重复插入
             cursor.execute(SQL_QUERIES.get("delete_language_info"))
 
+            # 插入新数据（需包含 type 字段）
             cursor.executemany(SQL_QUERIES.get("get_language_info"), data_list)
             conn.commit()
             print(f"[成功] 共插入 {len(data_list)} 条语言数据")

@@ -39,10 +39,15 @@ class SearchTab(QWidget):
 
         # --- 搜索区域 ---
         search_layout = QHBoxLayout()
-        self.key_selector = QComboBox()
-        # self.key_selector.addItems(SEARCHABLE_FIELDS)
-        for key, label in SEARCHABLE_FIELDS_MAP.items():
-            self.key_selector.addItem(label, key)
+        self.type_selector = QComboBox()
+        SEARCH_TYPE_MAP = {
+            "ALL": "全部",
+            "ITEM": "物品",
+            "QUEST": "任务",
+            "OTHER": "其他"
+        }
+        for key, label in SEARCH_TYPE_MAP.items():
+            self.type_selector.addItem(label, key)
 
         self.input_value = QLineEdit()
         self.input_value.setPlaceholderText("请输入搜索关键词（仅支持单字段）")
@@ -50,8 +55,7 @@ class SearchTab(QWidget):
         self.search_btn = QPushButton("搜索")
         self.search_btn.clicked.connect(self.do_search)
 
-        search_layout.addWidget(QLabel("字段："))
-        search_layout.addWidget(self.key_selector)
+        search_layout.addWidget(self.type_selector)
         search_layout.addWidget(self.input_value)
         search_layout.addWidget(self.search_btn)
 
@@ -72,7 +76,7 @@ class SearchTab(QWidget):
         self.setLayout(layout)
 
     def do_search(self):
-        key = self.key_selector.currentData()
+        type_filter = self.type_selector.currentData()
         value = self.input_value.text().strip()
 
         self.result_table.clearContents()
@@ -84,7 +88,7 @@ class SearchTab(QWidget):
             return
 
         try:
-            results = search_language_info(value, key)
+            results = search_language_info(value, type_filter)
             if not results:
                 self.result_count_label.setText("无匹配结果")
                 return

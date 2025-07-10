@@ -23,7 +23,7 @@ OTHER_FIELDS = [
 ]
 
 
-def search_language_info(value: str, key: str = None) -> list[dict]:
+def search_language_info(value: str, type_filter: str = "ALL") -> list[dict]:
     db_path = get_db_path("app.db")
 
     try:
@@ -31,32 +31,17 @@ def search_language_info(value: str, key: str = None) -> list[dict]:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
-            if key is None:
-                # 全字段模糊匹配（search_data）
-                sql = SQL_QUERIES.get("search_data")
-                if not sql:
-                    print("[错误] SQL 未找到：search_data")
-                    return []
-                cursor.execute(sql, [value] * 10)
-
-            elif key == "other":
-                # 构造临时 SQL 拼接 OTHER_FIELDS
-                conditions = [f"{field} LIKE ?" for field in OTHER_FIELDS]
-                sql = f"SELECT * FROM language_info WHERE {' OR '.join(conditions)}"
-                cursor.execute(sql, [f"%{value}%"] * len(OTHER_FIELDS))
-
-            elif key in SEARCHABLE_FIELDS and key != "other":
-                # 使用 search_data_by_field 模板
-                raw_sql = SQL_QUERIES.get("search_data_by_field")
-                if not raw_sql:
-                    print("[错误] SQL 未找到：search_data_by_field")
-                    return []
-                sql = raw_sql.format(key=key)
-                cursor.execute(sql, (f"%{value}%",))
-
-            else:
-                print(f"[警告] 非法字段名：{key}")
+            sql_key = "search_data_all" if type_filter == "ALL" else "search_data_by_type"
+            sql = SQL_QUERIES.get(sql_key)
+            if not sql:
+                print(f"[错误] SQL 未找到：{sql_key}")
                 return []
+
+            kw = f"%{value}%"
+            if type_filter == "ALL":
+                cursor.execute(sql, {"kw": kw})
+            else:
+                cursor.execute(sql, {"kw": kw, "type": type_filter})
 
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
