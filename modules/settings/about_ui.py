@@ -14,19 +14,34 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QHBoxLayout,
-    QFileDialog
+    QFileDialog,
+    QGridLayout
 )
 from modules.settings.settings_controller import (
     update_game_info_value,
     get_server_info,
     get_fika_server_info, get_game_info,
 )
-from modules.settings.about_controller import get_app_info
+from modules.settings.about_controller import get_app_info, get_gift_code
+
+
+def copy_to_clipboard(text: str):
+    """点击即复制"""
+    from PyQt6.QtGui import QGuiApplication
+    QGuiApplication.clipboard().setText(text)
+    print(f"[复制成功] {text}")
 
 
 class AboutTab(QWidget):
     def __init__(self):
         super().__init__()
+        self.label_name = None
+        self.label_version = None
+        self.label_author = None
+        self.github_label = None
+        self.input_path = None
+        self.gift_list = None
+        self.gift_layout = None
         self.app_info = get_app_info()
         self.init_ui()
         self.load_info()
@@ -77,9 +92,17 @@ class AboutTab(QWidget):
 
         settings_group.setLayout(form_layout)
 
+        # --- 复制按钮区域 ---
+        self.gift_list = get_gift_code()
+        gift_group = QGroupBox(f"礼包码（{len(self.gift_list)}）")
+        gift_group.setToolTip("点击礼包码即可复制")
+        self.gift_layout = QGridLayout()
+        gift_group.setLayout(self.gift_layout)
+
         # --- 主布局 ---
         layout.addWidget(about_group)
         layout.addWidget(settings_group)
+        layout.addWidget(gift_group)
         layout.addStretch()
         self.setLayout(layout)
 
@@ -95,6 +118,13 @@ class AboutTab(QWidget):
         # 自动扫描服务端
         get_server_info()
         get_fika_server_info()
+
+        # 动态添加按钮到 grid
+        for i, code in enumerate(self.gift_list):
+            btn = QPushButton(code)
+            btn.clicked.connect(lambda _, v=code: copy_to_clipboard(v))
+            row, col = divmod(i, 5)  # 每行放7个按钮
+            self.gift_layout.addWidget(btn, row, col)
 
     def select_path(self):
         current = self.input_path.text().strip() or os.path.expanduser("~")
